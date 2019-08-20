@@ -27,5 +27,5 @@ QUESTIONS = {
     'Wen nahm Knackeboul am Energy Air 2014 mit backstage?' => 'Sein Mami',
     'Welche Fussballmannschaft ist im Stade de Suisse zuhause?' => 'BSC Young Boys',
     'Wer eröffnete das erste Energy Air?' => 'Bastian Baker'
-}.map { |k, v| [k.upcase, v] }.to_h.freeze
+}.to_h.freeze
 
