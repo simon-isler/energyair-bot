@@ -35,6 +35,16 @@ class Bot
   def run
     register
   end
+
+  private
+
+  def check_error
+    if all('.error-message').any?
+      warn 'There has been an error: ' + find('.error-message').text
+      print 'Exiting...'
+      exit
+    end
+  end
 end
 
 bot = Bot.new
