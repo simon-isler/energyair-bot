@@ -60,7 +60,7 @@ class Bot
     current_question = find('.question-text').text
     answer = QUESTIONS.fetch(current_question)
     find('label', text: answer).click
-    click_button('Weiter')
+    click('Weiter')
   end
 
   def finished?
