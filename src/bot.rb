@@ -1,21 +1,20 @@
 require 'capybara'
 require 'capybara/dsl'
 require 'selenium/webdriver'
+require 'terminal-notifier'
 require './questions'
 
 Capybara.run_server = false
-# Capybara.current_driver = :selenium_chrome_headless
-# Capybara.current_driver = :selenium_chrome
 
 class Bot
   include Capybara::DSL
 
-  def initialize(visual: false)
+  def initialize()
     puts '--------------------'
     puts 'Energyair-Bot 2019'
     puts '--------------------'
 
-    Capybara.current_driver = visual ? :selenium_chrome : :selenium_chrome_headless
+    Capybara.current_driver = :selenium_chrome # : :selenium_chrome_headless
     register
     loop { run }
   end
@@ -48,8 +47,9 @@ class Bot
     choose_bubble
 
     if won?
-      print 'Congratulations! You have won a ticket!'
-      exit
+      puts 'Congratulations! You have won a ticket!'
+      TerminalNotifier.notify('Congratulations! You have won a ticket!', :title => 'energyair-bot')
+      sleep
     else
       print '.'
     end
@@ -86,11 +86,15 @@ class Bot
 
   def reconfirmation_needed?
     all('.title-verification').any?
+    print "\n ------------------------"
+    puts 'Reconfirmation needed: '
+    TerminalNotifier.notify('Reconfirmation needed!', :title => 'energyair-bot')
   end
 
   def check_error
     if all('.error-message').any?
       warn "An error message appeared: #{find('.error-message').text}\nExiting..."
+      TerminalNotifier.notify('An error message appeared!', :title => 'energyair-bot')
       exit
     end
   end
