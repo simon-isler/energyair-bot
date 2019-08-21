@@ -5,16 +5,17 @@ require './questions'
 
 Capybara.run_server = false
 # Capybara.current_driver = :selenium_chrome_headless
-Capybara.current_driver = :selenium_chrome
+# Capybara.current_driver = :selenium_chrome
 
 class Bot
   include Capybara::DSL
 
-  def initialize
+  def initialize(visual: false)
     puts '--------------------'
     puts 'Energyair-Bot 2019'
     puts '--------------------'
 
+    Capybara.current_driver = visual ? :selenium_chrome : :selenium_chrome_headless
     register
     loop { run }
   end
@@ -50,7 +51,7 @@ class Bot
       print 'Congratulations! You have won a ticket!'
       exit
     else
-      print '\u{f44d}'
+      print '.'
     end
   end
 
@@ -59,8 +60,8 @@ class Bot
   def answer_question
     current_question = find('.question-text').text
     answer = QUESTIONS.fetch(current_question)
-    find('label', text: answer).click
-    click('Weiter')
+    2.times { find('label', text: answer).click }
+    click_on 'Weiter'
   end
 
   def finished?
@@ -72,11 +73,11 @@ class Bot
   end
 
   def wrong_answers?
-    find('h1', text: 'Leider verloren').any?
+    all('h1').map(&:text).include?('Leider verloren')
   end
 
   def lost?
-    all('img[src=https://cdn.energy.ch/game-web/images/eair/bubble-lose.png"]').any?
+    all('img[src="https://cdn.energy.ch/game-web/images/eair/bubble-lose.png"]').any?
   end
 
   def won?
