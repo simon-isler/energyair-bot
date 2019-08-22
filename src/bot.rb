@@ -9,12 +9,12 @@ Capybara.run_server = false
 class Bot
   include Capybara::DSL
 
-  def initialize()
+  def initialize(visual: true)
     puts '--------------------'
     puts 'Energyair-Bot 2019'
     puts '--------------------'
 
-    Capybara.current_driver = :selenium_chrome # : :selenium_chrome_headless
+    Capybara.current_driver = visual ? :selenium_chrome : :selenium_chrome_headless
     register
     loop { run }
   end
@@ -22,7 +22,7 @@ class Bot
   def register
     visit 'https://game.energy.ch'
 
-    print 'Please enter your phone number: '
+    print "\nPlease enter your phone number: "
     tel_number = gets.chomp
     fill_in('inlineFormInput', with: tel_number)
     click_button('Verifizieren')
@@ -42,16 +42,20 @@ class Bot
 
     answer_question until finished?
     return if wrong_answers?
-    return register if reconfirmation_needed?
+
+    if reconfirmation_needed?
+      TerminalNotifier.notify('Reconfirmation needed!', title: 'energyair-bot')
+      return register
+    end
 
     choose_bubble
 
-    if won?
-      puts 'Congratulations! You have won a ticket!'
-      TerminalNotifier.notify('Congratulations! You have won a ticket!', :title => 'energyair-bot')
-      sleep
-    else
+    if lost?
       print '.'
+    else
+      puts "\nCongratulations! You have won a ticket!"
+      TerminalNotifier.notify('Congratulations! You have won a ticket!', title: 'energyair-bot')
+      sleep
     end
   end
 
@@ -60,7 +64,9 @@ class Bot
   def answer_question
     current_question = find('.question-text').text
     answer = QUESTIONS.fetch(current_question)
+    sleep rand(0.4..0.8)
     2.times { find('label', text: answer).click }
+    sleep rand(1..2)
     click_on 'Weiter'
   end
 
@@ -70,6 +76,7 @@ class Bot
 
   def choose_bubble
     all('.circle').sample.click
+    sleep rand(1..2)
   end
 
   def wrong_answers?
@@ -80,25 +87,17 @@ class Bot
     all('img[src="https://cdn.energy.ch/game-web/images/eair/bubble-lose.png"]').any?
   end
 
-  def won?
-    !lost?
-  end
-
   def reconfirmation_needed?
     all('.title-verification').any?
-    print "\n ------------------------"
-    puts 'Reconfirmation needed: '
-    TerminalNotifier.notify('Reconfirmation needed!', :title => 'energyair-bot')
   end
 
   def check_error
     if all('.error-message').any?
       warn "An error message appeared: #{find('.error-message').text}\nExiting..."
-      TerminalNotifier.notify('An error message appeared!', :title => 'energyair-bot')
+      TerminalNotifier.notify('An error message appeared!', title: 'energyair-bot')
       exit
     end
   end
 end
 
 bot = Bot.new
-
