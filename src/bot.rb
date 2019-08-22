@@ -64,7 +64,7 @@ class Bot
   def answer_question
     current_question = find('.question-text').text
     answer = QUESTIONS.fetch(current_question)
-    sleep rand(0.4..0.8)
+    sleep rand(0.3..0.7)
     2.times { find('label', text: answer).click }
     sleep rand(1..2)
     click_on 'Weiter'
