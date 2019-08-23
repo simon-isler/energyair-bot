@@ -10,11 +10,15 @@ class Bot
   include Capybara::DSL
 
   def initialize(visual: true)
+    Capybara.current_driver = visual ? :selenium_chrome : :selenium_chrome_headless
+
     puts '--------------------'
     puts 'Energyair-Bot 2019'
     puts '--------------------'
 
-    Capybara.current_driver = visual ? :selenium_chrome : :selenium_chrome_headless
+    print "\nPlease enter your phone number: "
+    @tel_number = gets.chomp
+
     register
     loop { run }
   end
@@ -22,9 +26,7 @@ class Bot
   def register
     visit 'https://game.energy.ch'
 
-    print "\nPlease enter your phone number: "
-    tel_number = gets.chomp
-    fill_in('inlineFormInput', with: tel_number)
+    fill_in('inlineFormInput', with: @tel_number)
     click_button('Verifizieren')
     check_error
 
@@ -64,9 +66,9 @@ class Bot
   def answer_question
     current_question = find('.question-text').text
     answer = QUESTIONS.fetch(current_question)
-    sleep rand(0.3..0.7)
+    sleep rand(0.5..1)
     2.times { find('label', text: answer).click }
-    sleep rand(1..2)
+    sleep rand(0.75..1.5)
     click_on 'Weiter'
   end
 
@@ -76,7 +78,7 @@ class Bot
 
   def choose_bubble
     all('.circle').sample.click
-    sleep rand(1..2)
+    sleep rand(0.75..1.5)
   end
 
   def wrong_answers?
