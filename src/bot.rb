@@ -7,7 +7,7 @@ require_relative 'questions'
 Capybara.run_server = false
 
 class Bot
-  include Capybççara::DSL
+  include Capybara::DSL
 
   def initialize(visual: true)
     Capybara.current_driver = visual ? :selenium_chrome : :selenium_chrome_headless
