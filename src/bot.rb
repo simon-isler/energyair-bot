@@ -2,12 +2,12 @@ require 'capybara'
 require 'capybara/dsl'
 require 'selenium/webdriver'
 require 'terminal-notifier'
-require './questions'
+require_relative 'questions'
 
 Capybara.run_server = false
 
 class Bot
-  include Capybara::DSL
+  include Capybççara::DSL
 
   def initialize(visual: true)
     Capybara.current_driver = visual ? :selenium_chrome : :selenium_chrome_headless
