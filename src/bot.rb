@@ -2,104 +2,81 @@ require 'capybara'
 require 'capybara/dsl'
 require 'selenium/webdriver'
 require 'terminal-notifier'
-require_relative 'questions'
+require_relative 'game'
 
 Capybara.run_server = false
 
 class Bot
   include Capybara::DSL
 
-  def initialize(visual: true)
-    Capybara.current_driver = visual ? :selenium_chrome : :selenium_chrome_headless
-
+  def initialize(headless: true, access_token:)
     puts '--------------------'
-    puts 'Energyair-Bot 2019'
+    puts Game::TITLE
     puts '--------------------'
 
-    print "\nPlease enter your phone number: "
-    @tel_number = gets.chomp
-
-    register
-    loop { run }
-  end
-
-  def register
-    visit 'https://game.energy.ch'
-
-    fill_in('inlineFormInput', with: @tel_number)
-    click_button('Verifizieren')
-    check_error
-
-    print 'Please enter the activation code: '
-    activation_code = gets.chomp
-    numbers = activation_code.split('')
-    numbers.each_with_index do |number, index|
-      fill_in((index + 1).to_s, with: number)
-    end
-    click_button('Verifizieren')
+    @headless = headless
+    @access_token = access_token
   end
 
   def run
-    visit 'https://game.energy.ch'
-
-    answer_question until finished?
-    return if wrong_answers?
-
-    if reconfirmation_needed?
-      TerminalNotifier.notify('Reconfirmation needed!', title: 'energyair-bot')
-      return register
-    end
-
-    choose_bubble
-
-    if lost?
-      print '.'
-    else
-      puts "\nCongratulations! You have won a ticket!"
-      TerminalNotifier.notify('Congratulations! You have won a ticket!', title: 'energyair-bot')
-      sleep
-    end
+    Capybara.current_driver = @headless ? :selenium_chrome_headless : :selenium_chrome
+    authenticate_user
+    play_game
   end
 
   private
 
-  def answer_question
+  def authenticate_user
+    visit Game::URL
+    browser = Capybara.current_session.driver.browser
+    browser.manage.add_cookie(name: 'access_token', value: @access_token)
+  end
+
+  def play_game
+    loop do
+      start_game
+      answer_questions until finished?
+      return if wrong_answers?
+
+      choose_bubble
+      if game_lost?
+        print "."
+      else
+        puts 'Congratulations! You have won a ticket! 🎉'
+        break
+      end
+    end
+  end
+
+  def start_game
+    visit Game::URL
+    click_button('Game starten')
+  end
+
+  def answer_questions
     current_question = find('.question-text').text
-    answer = QUESTIONS.fetch(current_question)
+    answer = Game::QUESTIONS.fetch(current_question)
     sleep rand(0.5..1)
-    2.times { find('label', text: answer).click }
+    find('label', text: answer).click
     sleep rand(0.75..1.5)
-    click_on 'Weiter'
+    click_button('Weiter')
   end
 
   def finished?
     all('.question-text').empty?
   end
 
-  def choose_bubble
-    all('.circle').sample.click
-    sleep rand(0.75..1.5)
-  end
-
   def wrong_answers?
     all('h1').map(&:text).include?('Leider verloren')
   end
 
-  def lost?
-    all('img[src="https://cdn.energy.ch/game-web/images/eair/bubble-lose.png"]').any?
+  def choose_bubble
+    click_button('Jetzt Tickets für das Energy Air gewinnen!')
+    all('.circle').sample.click
+    sleep rand(0.75..1.5)
   end
 
-  def reconfirmation_needed?
-    all('.title-verification').any?
-  end
-
-  def check_error
-    if all('.error-message').any?
-      warn "An error message appeared: #{find('.error-message').text}\nExiting..."
-      TerminalNotifier.notify('An error message appeared!', title: 'energyair-bot')
-      exit
-    end
+  def game_lost?
+    all('img[src="https://cdn.energy.ch/game-web/images/eair/bubble-lose.png?2021"]').any?
   end
 end
-
-bot = Bot.new

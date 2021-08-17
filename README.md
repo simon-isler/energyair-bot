@@ -14,5 +14,5 @@ bundle install
 ## Run
 
 ```
-ruby src/bot.rb
+bin/run
 ```
