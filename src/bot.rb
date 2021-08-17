@@ -1,7 +1,6 @@
 require 'capybara'
 require 'capybara/dsl'
 require 'selenium/webdriver'
-require 'terminal-notifier'
 require_relative 'game'
 
 Capybara.run_server = false
@@ -72,8 +71,8 @@ class Bot
 
   def choose_bubble
     click_button('Jetzt Tickets für das Energy Air gewinnen!')
-    all('.circle').sample.click
     sleep rand(0.75..1.5)
+    all('.circle').sample.click
   end
 
   def game_lost?
