@@ -20,7 +20,7 @@ class Bot
   def run
     Capybara.current_driver = @headless ? :selenium_chrome_headless : :selenium_chrome
     authenticate_user
-    play_game
+    loop { play_game }
   end
 
   private
@@ -32,19 +32,12 @@ class Bot
   end
 
   def play_game
-    loop do
-      start_game
-      answer_questions until finished?
-      return if wrong_answers?
+    start_game
+    answer_questions until finished?
+    return if wrong_answers?
 
-      choose_bubble
-      if game_lost?
-        print "."
-      else
-        puts 'Congratulations! You have won a ticket! 🎉'
-        break
-      end
-    end
+    choose_bubble
+    print "." if game_lost?
   end
 
   def start_game
@@ -71,7 +64,7 @@ class Bot
 
   def choose_bubble
     click_button('Jetzt Tickets für das Energy Air gewinnen!')
-    sleep rand(0.75..1.5)
+    sleep rand(1..1.5)
     all('.circle').sample.click
   end
 
